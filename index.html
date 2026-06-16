@@ -543,33 +543,22 @@
       return;
     }
 
-    window.handleResponse = function(data) {
-      if (data.result === 'success') {
+    // Use no-cors fetch - script still executes and writes to sheet
+    const params = new URLSearchParams({ action: 'submit', ...payload });
+    fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+      .then(() => {
         setStatus('success', '✅ Saved to spreadsheet!');
         showToast('✅ Entry synced!');
+        btn.disabled = false;
         resetForm();
-      } else {
-        setStatus('error', '⚠️ Something went wrong. Try again.');
-      }
-      btn.disabled = false;
-      setTimeout(() => setStatus('',''), 4000);
-      const s = document.getElementById('jsonp-script');
-      if (s) document.body.removeChild(s);
-    };
-
-    const params = new URLSearchParams({ action:'submit', callback:'handleResponse', ...payload });
-    const script = document.createElement('script');
-    script.id = 'jsonp-script';
-    script.src = SCRIPT_URL + '?' + params.toString();
-    script.onerror = function() {
-      setStatus('error', '⚠️ Sync failed. Check connection.');
-      showToast('⚠️ Sync failed');
-      btn.disabled = false;
-      setTimeout(() => setStatus('',''), 4000);
-      const s = document.getElementById('jsonp-script');
-      if (s) document.body.removeChild(s);
-    };
-    document.body.appendChild(script);
+        setTimeout(() => setStatus('',''), 4000);
+      })
+      .catch(() => {
+        setStatus('error', '⚠️ Sync failed. Check connection.');
+        showToast('⚠️ Sync failed');
+        btn.disabled = false;
+        setTimeout(() => setStatus('',''), 4000);
+      });
   }
 
   function resetForm() {

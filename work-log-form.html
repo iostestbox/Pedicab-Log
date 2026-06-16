@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Work Log">
+<title>Work Log Entry</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1a2e;
+    --light: #9090aa;
+    --rule: #e2e2ec;
+    --bg: #f7f7fb;
+    --card: #ffffff;
+    --accent: #1a5c8f;
+    --accent-light: #daeaf7;
+    --accent-dark: #0d3a5c;
+    --green: #2d6a4f;
+    --green-light: #d8f3dc;
+    --amber: #7a5200;
+    --amber-light: #fff3cd;
+    --red: #c0392b;
+    --red-light: #fde8e8;
+  }
+  html, body { width: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--ink);
+    padding-bottom: 40px; font-size: 16px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--ink); color: white;
+    padding: 14px 16px 10px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .hdr-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  header h1 { font-size: 1.1rem; font-weight: 600; }
+  .hdr-sub { font-size: 0.72rem; color: #8888aa; margin-top: 2px; }
+  .hdr-time { text-align: right; }
+  .hdr-time .time { font-size: 1rem; font-weight: 500; color: #7ec8a0; }
+  .hdr-time .date { font-size: 0.72rem; color: #8888aa; margin-top: 2px; }
+
+  /* PANEL */
+  .panel { padding: 12px 14px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border-radius: 12px;
+    border: 1px solid var(--rule); margin-bottom: 10px; overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-icon { font-size: 1rem; }
+  .card-title {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--light);
+  }
+  .badge {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+    background: var(--accent-light); color: var(--accent-dark);
+  }
+  .toggle-btn {
+    background: none; border: none; color: var(--light);
+    font-size: 1.2rem; cursor: pointer; padding: 0 2px; line-height: 1;
+    transition: transform 0.2s;
+  }
+  .toggle-btn.open { transform: rotate(180deg); }
+  .collapsible { display: none; }
+  .collapsible.open { display: block; }
+
+  /* FIELD ROWS */
+  .field-group { padding: 4px 14px 12px; }
+  .field-row {
+    display: flex; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--rule);
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-row label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--light); width: 120px; flex-shrink: 0;
+  }
+  .field-row input, .field-row select {
+    border: none; background: transparent; font-size: 1rem;
+    color: var(--ink); flex: 1; padding: 2px 4px; -webkit-appearance: none;
+    font-family: inherit;
+  }
+  .field-row input:focus, .field-row select:focus { outline: none; color: var(--accent); }
+  .prefix-wrap { display: flex; align-items: center; flex: 1; gap: 2px; }
+  .prefix-wrap .symbol { font-size: 1rem; color: var(--light); }
+  .prefix-wrap input { flex: 1; }
+
+  /* TWO-COL MONEY FIELDS */
+  .money-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .money-cell { padding: 9px 14px; border-right: 1px solid var(--rule); }
+  .money-cell:last-child { border-right: none; }
+  .money-cell label {
+    display: block; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--light); margin-bottom: 5px;
+  }
+  .money-input { display: flex; align-items: center; gap: 3px; }
+  .money-input .sym { font-size: 0.9rem; color: var(--light); }
+  .money-input input {
+    border: none; background: transparent; font-size: 1rem;
+    color: var(--ink); width: 100%; padding: 0; -webkit-appearance: none;
+    font-family: inherit;
+  }
+  .money-input input:focus { outline: none; color: var(--accent); }
+
+  /* REPEATING ENTRY BLOCKS */
+  .entry-block { border-bottom: 1px solid var(--rule); }
+  .entry-block:last-child { border-bottom: none; }
+  .entry-block-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 14px; background: #fafafa;
+    border-bottom: 1px solid var(--rule);
+  }
+  .entry-num { font-size: 0.7rem; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: 0.05em; }
+  .remove-btn {
+    background: none; border: none; color: var(--red);
+    font-size: 0.8rem; cursor: pointer; font-family: inherit; padding: 0;
+  }
+
+  /* ADD BUTTON */
+  .add-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; width: 100%; padding: 13px 14px;
+    background: none; border: none; border-top: 1px solid var(--rule);
+    font-size: 0.88rem; font-weight: 600; color: var(--accent);
+    cursor: pointer; font-family: inherit;
+  }
+  .add-btn:active { background: var(--accent-light); }
+
+  /* NOTES */
+  .notes-wrap { padding: 0 14px 12px; }
+  .notes-wrap textarea {
+    width: 100%; border: 1px solid var(--rule); border-radius: 8px;
+    padding: 8px 10px; font-size: 0.9rem; color: var(--ink);
+    background: var(--bg); resize: none; font-family: inherit; min-height: 60px;
+  }
+  .notes-wrap textarea:focus { outline: none; border-color: var(--accent); }
+
+  /* SECTION LABEL inside card body */
+  .section-hint {
+    font-size: 0.68rem; color: var(--light); padding: 10px 14px 0;
+    letter-spacing: 0.03em;
+  }
+
+  /* SAVE BUTTON */
+  .btn-save {
+    display: block; width: 100%; padding: 16px;
+    background: var(--ink); color: white; border: none;
+    border-radius: 12px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; font-family: inherit; margin-top: 4px;
+  }
+  .btn-save:active { background: #2d2d50; transform: scale(0.98); }
+  .btn-save:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* STATUS / TOAST */
+  .sync-status {
+    font-size: 0.85rem; text-align: center; padding: 9px;
+    border-radius: 8px; margin-bottom: 10px; display: none;
+  }
+  .sync-status.syncing { display: block; background: var(--amber-light); color: var(--amber); }
+  .sync-status.success { display: block; background: var(--green-light); color: var(--green); }
+  .sync-status.error   { display: block; background: var(--red-light); color: var(--red); }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: white; padding: 11px 22px;
+    border-radius: 30px; font-size: 0.85rem; font-weight: 500;
+    opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-row">
+    <div>
+      <h1>Work Log Entry</h1>
+      <div class="hdr-sub" id="live-day"></div>
+    </div>
+    <div class="hdr-time">
+      <div class="time" id="live-time"></div>
+      <div class="date" id="live-date"></div>
+    </div>
+  </div>
+</header>
+
+<div class="panel">
+  <div id="sync-status" class="sync-status"></div>
+
+  <!-- SECTION 1: DAILY SUMMARY -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <span class="card-icon">📋</span>
+        <span class="card-title">Daily Summary</span>
+      </div>
+      <span class="badge">APC</span>
+    </div>
+    <div class="money-row">
+      <div class="money-cell">
+        <label>APC (Digital)</label>
+        <div class="money-input"><span class="sym">$</span><input type="number" id="ds-digital" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+      </div>
+      <div class="money-cell">
+        <label>Cash</label>
+        <div class="money-input"><span class="sym">$</span><input type="number" id="ds-cash" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 2: FESTS & SPECIAL EVENTS (collapsible) -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSection('events-body','events-btn')" style="cursor:pointer">
+      <div class="card-header-left">
+        <span class="card-icon">🎪</span>
+        <span class="card-title">Fests &amp; Special Events</span>
+      </div>
+      <button class="toggle-btn" id="events-btn" aria-label="Toggle events">▾</button>
+    </div>
+    <div class="collapsible" id="events-body">
+      <div id="event-list"></div>
+      <button class="add-btn" onclick="addEvent()">＋ Add event</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: LEASES (collapsible) -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSection('leases-body','leases-btn')" style="cursor:pointer">
+      <div class="card-header-left">
+        <span class="card-icon">🏷️</span>
+        <span class="card-title">Leases</span>
+      </div>
+      <button class="toggle-btn" id="leases-btn" aria-label="Toggle leases">▾</button>
+    </div>
+    <div class="collapsible" id="leases-body">
+      <div class="field-group" style="padding-top:10px;">
+
+          <label for="lease-date">Date Paid</label>
+          <input type="date" id="lease-date">
+        </div>
+        <div class="field-row" style="border-bottom:none">
+          <label for="lease-amt">Amount</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" id="lease-amt" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: CHARTERS (collapsible) -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSection('charters-body','charters-btn')" style="cursor:pointer">
+      <div class="card-header-left">
+        <span class="card-icon">🚗</span>
+        <span class="card-title">Charters</span>
+      </div>
+      <button class="toggle-btn" id="charters-btn" aria-label="Toggle charters">▾</button>
+    </div>
+    <div class="collapsible" id="charters-body">
+      <div id="charter-list"></div>
+      <button class="add-btn" onclick="addCharter()">＋ Add charter</button>
+    </div>
+  </div>
+
+  <!-- SECTION 5: MILEAGE & EXPENSES -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <span class="card-icon">🛣️</span>
+        <span class="card-title">Mileage &amp; Expenses</span>
+      </div>
+    </div>
+    <div id="expense-list"></div>
+    <button class="add-btn" onclick="addExpense()">＋ Add entry</button>
+  </div>
+
+  <button class="btn-save" id="save-btn" onclick="saveAll()">💾 Save entry</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* CLOCK */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('live-time').textContent =
+      now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', second:'2-digit'});
+    document.getElementById('live-date').textContent =
+      now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    document.getElementById('live-day').textContent =
+      now.toLocaleDateString('en-US', {weekday:'long'});
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  /* COLLAPSIBLE */
+  function toggleSection(bodyId, btnId) {
+    const body = document.getElementById(bodyId);
+    const btn  = document.getElementById(btnId);
+    const open = body.classList.contains('open');
+    body.classList.toggle('open', !open);
+    btn.classList.toggle('open', !open);
+  }
+
+  /* FESTS & SPECIAL EVENTS */
+  let eventCount = 0;
+  function addEvent() {
+    eventCount++;
+    const n = eventCount;
+    const div = document.createElement('div');
+    div.className = 'entry-block';
+    div.id = 'event-' + n;
+    div.innerHTML = `
+      <div class="entry-block-header">
+        <span class="entry-num">Event #${n}</span>
+        <button class="remove-btn" onclick="removeEntry('event-${n}')">✕ Remove</button>
+      </div>
+      <div class="field-group" style="padding-top:10px;">
+        <div class="field-row">
+          <label>Event Name</label>
+          <input type="text" placeholder="e.g. SXSW, F1 Miami, ACL…" class="ev-name">
+        </div>
+        <div class="field-row">
+          <label>Start Date</label>
+          <input type="date" class="ev-start">
+        </div>
+        <div class="field-row">
+          <label>End Date</label>
+          <input type="date" class="ev-end">
+        </div>
+        <div class="field-row">
+          <label>Total Earned</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal" class="ev-total"></div>
+        </div>
+        <div class="field-row" style="border-bottom:none">
+          <label>Lease Fee</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal" class="ev-lease"></div>
+        </div>
+      </div>`;
+    document.getElementById('event-list').appendChild(div);
+  }
+
+  /* CHARTERS */
+  let charterCount = 0;
+  function addCharter() {
+    charterCount++;
+    const n = charterCount;
+    const div = document.createElement('div');
+    div.className = 'entry-block';
+    div.id = 'charter-' + n;
+    div.innerHTML = `
+      <div class="entry-block-header">
+        <span class="entry-num">Charter #${n}</span>
+        <button class="remove-btn" onclick="removeEntry('charter-${n}')">✕ Remove</button>
+      </div>
+      <div class="field-group" style="padding-top:10px;">
+        <div class="field-row">
+          <label>Date</label>
+          <input type="date" class="c-date">
+        </div>
+        <div class="field-row">
+          <label>Description</label>
+          <input type="text" placeholder="e.g. JW Marriott to Bangers" class="c-desc">
+        </div>
+        <div class="field-row">
+          <label># of Cabs</label>
+          <input type="number" placeholder="e.g. 11" min="1" inputmode="numeric" class="c-cabs">
+        </div>
+        <div class="field-row">
+          <label>Timeframe</label>
+          <input type="text" placeholder="e.g. 6pm – 9pm" class="c-timeframe">
+        </div>
+        <div class="field-row">
+          <label>Rate</label>
+          <input type="text" placeholder="e.g. $150/cab or $60/hr" class="c-rate">
+        </div>
+        <div class="field-row" style="border-bottom:none">
+          <label>Total Expected</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal" class="c-total"></div>
+        </div>
+      </div>`;
+    document.getElementById('charter-list').appendChild(div);
+  }
+
+  /* MILEAGE & EXPENSES */
+  let expCount = 0;
+  const expTypes = ['Food','Fuel','Permit','Parking','Other'];
+  function addExpense() {
+    expCount++;
+    const n = expCount;
+    const div = document.createElement('div');
+    div.className = 'entry-block';
+    div.id = 'exp-' + n;
+    const typeOpts = expTypes.map(t => `<option>${t}</option>`).join('');
+    div.innerHTML = `
+      <div class="entry-block-header">
+        <span class="entry-num">Entry #${n}</span>
+        <button class="remove-btn" onclick="removeEntry('exp-${n}')">✕ Remove</button>
+      </div>
+      <div class="field-group" style="padding-top:10px;">
+        <div class="field-row">
+          <label>Date</label>
+          <input type="date" class="e-date">
+        </div>
+        <div class="field-row">
+          <label>Destination</label>
+          <input type="text" placeholder="e.g. Austin, College Station" class="e-dest">
+        </div>
+        <div class="field-row">
+          <label>Purpose</label>
+          <input type="text" placeholder="e.g. Lunch, Travel, Permit" class="e-purpose">
+        </div>
+        <div class="field-row">
+          <label>Odo Start</label>
+          <input type="number" placeholder="e.g. 189160" min="0" inputmode="numeric" class="e-start" oninput="calcMiles(${n})">
+        </div>
+        <div class="field-row">
+          <label>Odo Stop</label>
+          <input type="number" placeholder="e.g. 189360" min="0" inputmode="numeric" class="e-stop" oninput="calcMiles(${n})">
+        </div>
+        <div class="field-row">
+          <label>Miles</label>
+          <input type="number" class="e-miles" readonly placeholder="Auto-calculated" style="color:var(--light)">
+        </div>
+        <div class="field-row">
+          <label>Expense Type</label>
+          <select class="e-type"><option value="">None</option>${typeOpts}</select>
+        </div>
+        <div class="field-row">
+          <label>Amount</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal" class="e-amt"></div>
+        </div>
+        <div class="field-row" style="border-bottom:none">
+          <label>Per Gallon</label>
+          <div class="prefix-wrap"><span class="symbol">$</span><input type="number" placeholder="e.g. 3.69" min="0" step="0.01" inputmode="decimal" class="e-gal"></div>
+        </div>
+      </div>`;
+    document.getElementById('expense-list').appendChild(div);
+  }
+
+  function calcMiles(n) {
+    const block = document.getElementById('exp-' + n);
+    const start = parseFloat(block.querySelector('.e-start').value) || 0;
+    const stop  = parseFloat(block.querySelector('.e-stop').value)  || 0;
+    block.querySelector('.e-miles').value = stop > start ? (stop - start) : '';
+  }
+
+  function removeEntry(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  /* SAVE */
+  function saveAll() {
+    const digital = document.getElementById('ds-digital').value;
+    const cash    = document.getElementById('ds-cash').value;
+    if (!digital && !cash) {
+      showToast('⚠️ Enter at least one earnings amount'); return;
+    }
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    setStatus('syncing', '⏳ Saving entry…');
+
+    const events = [];
+    document.querySelectorAll('[id^="event-"]').forEach(b => {
+      events.push({
+        name:  b.querySelector('.ev-name').value,
+        start: b.querySelector('.ev-start').value,
+        end:   b.querySelector('.ev-end').value,
+        total: b.querySelector('.ev-total').value,
+        lease: b.querySelector('.ev-lease').value,
+      });
+    });
+
+    const charters = [];
+    document.querySelectorAll('[id^="charter-"]').forEach(b => {
+      charters.push({
+        date:      b.querySelector('.c-date').value,
+        desc:      b.querySelector('.c-desc').value,
+        cabs:      b.querySelector('.c-cabs').value,
+        timeframe: b.querySelector('.c-timeframe').value,
+        rate:      b.querySelector('.c-rate').value,
+        total:     b.querySelector('.c-total').value,
+      });
+    });
+
+    const expenses = [];
+    document.querySelectorAll('[id^="exp-"]').forEach(b => {
+      expenses.push({
+        date:    b.querySelector('.e-date').value,
+        dest:    b.querySelector('.e-dest').value,
+        purpose: b.querySelector('.e-purpose').value,
+        odoStart:b.querySelector('.e-start').value,
+        odoStop: b.querySelector('.e-stop').value,
+        miles:   b.querySelector('.e-miles').value,
+        type:    b.querySelector('.e-type').value,
+        amount:  b.querySelector('.e-amt').value,
+        perGal:  b.querySelector('.e-gal').value,
+      });
+    });
+
+    const payload = {
+      timestamp:  new Date().toLocaleString('en-US'),
+      apc:        digital || '0',
+      cash:       cash    || '0',
+
+      leaseDate:  document.getElementById('lease-date').value,
+      leaseAmt:   document.getElementById('lease-amt').value || '0',
+      events:     JSON.stringify(events),
+      charters:   JSON.stringify(charters),
+      expenses:   JSON.stringify(expenses),
+    };
+
+    // REPLACE with your Google Apps Script URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyExSb_5bnWUYqGTjOMtT5XBQ170_IaWfbGi4YimZvUUdaJkb-c66IgiLmxXll_WjxE/exec';
+
+    if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+      console.log('Payload:', payload);
+      setTimeout(() => {
+        setStatus('success', '✅ Entry ready — connect a Google Sheet to post!');
+        showToast('✅ Saved (demo mode)');
+        btn.disabled = false;
+        setTimeout(() => setStatus('',''), 5000);
+      }, 700);
+      return;
+    }
+
+    window.handleResponse = function(data) {
+      if (data.result === 'success') {
+        setStatus('success', '✅ Saved to spreadsheet!');
+        showToast('✅ Entry synced!');
+        resetForm();
+      } else {
+        setStatus('error', '⚠️ Something went wrong. Try again.');
+      }
+      btn.disabled = false;
+      setTimeout(() => setStatus('',''), 4000);
+      const s = document.getElementById('jsonp-script');
+      if (s) document.body.removeChild(s);
+    };
+
+    const params = new URLSearchParams({ action:'submit', callback:'handleResponse', ...payload });
+    const script = document.createElement('script');
+    script.id = 'jsonp-script';
+    script.src = SCRIPT_URL + '?' + params.toString();
+    script.onerror = function() {
+      setStatus('error', '⚠️ Sync failed. Check connection.');
+      showToast('⚠️ Sync failed');
+      btn.disabled = false;
+      setTimeout(() => setStatus('',''), 4000);
+      const s = document.getElementById('jsonp-script');
+      if (s) document.body.removeChild(s);
+    };
+    document.body.appendChild(script);
+  }
+
+  function resetForm() {
+    document.getElementById('ds-digital').value  = '';
+    document.getElementById('ds-cash').value      = '';
+    document.getElementById('lease-date').value   = '';
+    document.getElementById('lease-amt').value    = '';
+    document.getElementById('event-list').innerHTML   = '';
+    document.getElementById('charter-list').innerHTML = '';
+    document.getElementById('expense-list').innerHTML = '';
+    eventCount = 0; charterCount = 0; expCount = 0;
+  }
+
+  function setStatus(type, msg) {
+    const el = document.getElementById('sync-status');
+    el.className = 'sync-status' + (type ? ' ' + type : '');
+    el.textContent = msg;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  addExpense();
+</script>
+</body>
+</html>

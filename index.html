@@ -511,22 +511,17 @@
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyExSb_5bnWUYqGTjOMtT5XBQ170_IaWfbGi4YimZvUUdaJkb-c66IgiLmxXll_WjxE/exec';
 
-    // Use no-cors fetch - script still executes and writes to sheet
+    // Use image ping - most reliable cross-origin GET method
     const params = new URLSearchParams({ action: 'submit', ...payload });
-    fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
-      .then(() => {
-        setStatus('success', '✅ Saved to spreadsheet!');
-        showToast('✅ Entry synced!');
-        btn.disabled = false;
-        resetForm();
-        setTimeout(() => setStatus('',''), 4000);
-      })
-      .catch(() => {
-        setStatus('error', '⚠️ Sync failed. Check connection.');
-        showToast('⚠️ Sync failed');
-        btn.disabled = false;
-        setTimeout(() => setStatus('',''), 4000);
-      });
+    const img = new Image();
+    img.onload = img.onerror = function() {
+      setStatus('success', '✅ Saved to spreadsheet!');
+      showToast('✅ Entry synced!');
+      btn.disabled = false;
+      resetForm();
+      setTimeout(() => setStatus('',''), 4000);
+    };
+    img.src = SCRIPT_URL + '?' + params.toString();
   }
 
   function resetForm() {

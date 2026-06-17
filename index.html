@@ -279,16 +279,19 @@
     </div>
   </div>
 
-  <!-- SECTION 5: MILEAGE & EXPENSES -->
+  <!-- SECTION 5: MILEAGE & EXPENSES (collapsible) -->
   <div class="card">
-    <div class="card-header">
+    <div class="card-header" onclick="toggleSection('mileage-body','mileage-btn')" style="cursor:pointer">
       <div class="card-header-left">
         <span class="card-icon">🛣️</span>
         <span class="card-title">Mileage &amp; Expenses</span>
       </div>
+      <button class="toggle-btn" id="mileage-btn" aria-label="Toggle mileage">▾</button>
     </div>
-    <div id="expense-list"></div>
-    <button class="add-btn" onclick="addExpense()">＋ Add entry</button>
+    <div class="collapsible" id="mileage-body">
+      <div id="expense-list"></div>
+      <button class="add-btn" onclick="addExpense()">＋ Add entry</button>
+    </div>
   </div>
 
   <button class="btn-save" id="save-btn" onclick="saveAll()">💾 Save entry</button>
@@ -380,12 +383,8 @@
           <input type="text" placeholder="e.g. JW Marriott to Bangers" class="c-desc">
         </div>
         <div class="field-row">
-          <label># of Cabs</label>
-          <input type="number" placeholder="e.g. 11" min="1" inputmode="numeric" class="c-cabs">
-        </div>
-        <div class="field-row">
-          <label>Timeframe</label>
-          <input type="text" placeholder="e.g. 6pm – 9pm" class="c-timeframe">
+          <label>Cabs &amp; Time</label>
+          <input type="text" placeholder="e.g. 11 cabs, 6pm – 9pm" class="c-cabstime">
         </div>
         <div class="field-row">
           <label>Rate</label>
@@ -471,9 +470,6 @@
   function saveAll() {
     const digital = document.getElementById('ds-digital').value;
     const cash    = document.getElementById('ds-cash').value;
-    if (!digital && !cash) {
-      showToast('⚠️ Enter at least one earnings amount'); return;
-    }
 
     const btn = document.getElementById('save-btn');
     btn.disabled = true;
@@ -488,7 +484,7 @@
     const charters = [];
     document.querySelectorAll('[id^="charter-"]').forEach(b => {
       const f = (cls) => { const el = b.querySelector(cls); return el ? el.value : ''; };
-      charters.push({ date: f('.c-date'), desc: f('.c-desc'), cabs: f('.c-cabs'), timeframe: f('.c-timeframe'), rate: f('.c-rate'), total: f('.c-total') });
+      charters.push({ date: f('.c-date'), desc: f('.c-desc'), cabstime: f('.c-cabstime'), rate: f('.c-rate'), total: f('.c-total') });
     });
 
     const expenses = [];

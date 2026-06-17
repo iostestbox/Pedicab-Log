@@ -529,19 +529,7 @@
       expenses:   JSON.stringify(expenses),
     };
 
-    // REPLACE with your Google Apps Script URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyExSb_5bnWUYqGTjOMtT5XBQ170_IaWfbGi4YimZvUUdaJkb-c66IgiLmxXll_WjxE/exec';
-
-    if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyExSb_5bnWUYqGTjOMtT5XBQ170_IaWfbGi4YimZvUUdaJkb-c66IgiLmxXll_WjxE/exec') {
-      console.log('Payload:', payload);
-      setTimeout(() => {
-        setStatus('success', '✅ Entry ready — connect a Google Sheet to post!');
-        showToast('✅ Saved (demo mode)');
-        btn.disabled = false;
-        setTimeout(() => setStatus('',''), 5000);
-      }, 700);
-      return;
-    }
 
     // Use no-cors fetch - script still executes and writes to sheet
     const params = new URLSearchParams({ action: 'submit', ...payload });

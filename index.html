@@ -481,40 +481,20 @@
 
     const events = [];
     document.querySelectorAll('[id^="event-"]').forEach(b => {
-      events.push({
-        name:  b.querySelector('.ev-name').value,
-        start: b.querySelector('.ev-start').value,
-        end:   b.querySelector('.ev-end').value,
-        total: b.querySelector('.ev-total').value,
-        lease: b.querySelector('.ev-lease').value,
-      });
+      const f = (cls) => { const el = b.querySelector(cls); return el ? el.value : ''; };
+      events.push({ name: f('.ev-name'), start: f('.ev-start'), end: f('.ev-end'), total: f('.ev-total'), lease: f('.ev-lease') });
     });
 
     const charters = [];
     document.querySelectorAll('[id^="charter-"]').forEach(b => {
-      charters.push({
-        date:      b.querySelector('.c-date').value,
-        desc:      b.querySelector('.c-desc').value,
-        cabs:      b.querySelector('.c-cabs').value,
-        timeframe: b.querySelector('.c-timeframe').value,
-        rate:      b.querySelector('.c-rate').value,
-        total:     b.querySelector('.c-total').value,
-      });
+      const f = (cls) => { const el = b.querySelector(cls); return el ? el.value : ''; };
+      charters.push({ date: f('.c-date'), desc: f('.c-desc'), cabs: f('.c-cabs'), timeframe: f('.c-timeframe'), rate: f('.c-rate'), total: f('.c-total') });
     });
 
     const expenses = [];
     document.querySelectorAll('[id^="exp-"]').forEach(b => {
-      expenses.push({
-        date:    b.querySelector('.e-date').value,
-        dest:    b.querySelector('.e-dest').value,
-        purpose: b.querySelector('.e-purpose').value,
-        odoStart:b.querySelector('.e-start').value,
-        odoStop: b.querySelector('.e-stop').value,
-        miles:   b.querySelector('.e-miles').value,
-        type:    b.querySelector('.e-type').value,
-        amount:  b.querySelector('.e-amt').value,
-        perGal:  b.querySelector('.e-gal').value,
-      });
+      const f = (cls) => { const el = b.querySelector(cls); return el ? el.value : ''; };
+      expenses.push({ date: f('.e-date'), dest: f('.e-dest'), purpose: f('.e-purpose'), odoStart: f('.e-start'), odoStop: f('.e-stop'), miles: f('.e-miles'), type: f('.e-type'), amount: f('.e-amt'), perGal: f('.e-gal') });
     });
 
     const payload = {

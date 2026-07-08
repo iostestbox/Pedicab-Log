@@ -571,6 +571,7 @@
       timestamp:  getDailySummaryTimestamp(),
       apc:        digital || '0',
       cash:       cash    || '0',
+      dsSubmit:   (parseFloat(digital) > 0 || parseFloat(cash) > 0) ? '1' : '0',
 
       leaseDate:  document.getElementById('lease-date').value,
       leaseAmt:   document.getElementById('lease-amt').value || '0',
